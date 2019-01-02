@@ -65,4 +65,16 @@ void main() {
     var paths = fileContents.first.images;
     expect(paths.contains("file3"), true);
   });
+
+  test("properly loads saved image collections", () async {
+    //given
+    await repository.addImage("file3");
+    await repository.addImage("file4");
+
+    //then
+    final collections = await repository.loadCollections();
+    expect(collections.length, 2);
+    expect(collections[0].images[0], "file3");
+    expect(collections[1].images[0], "file4");
+  });
 }

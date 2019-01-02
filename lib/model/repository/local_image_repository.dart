@@ -45,7 +45,9 @@ class LocalImageRepository implements ImageRepository {
   Future<List<ImageCollection>> loadCollections() async {
     final file = await _getLocalFile();
     final string = await file.readAsString();
-    var jsonMap = JsonDecoder().convert(string)["collection"];
+    var jsonMap = JsonDecoder()
+        .convert(string)["collection"]
+        .cast<Map<String, dynamic>>();
     return jsonMap
         .map<ImageCollection>((it) => ImageCollection.fromJson(it))
         .toList();
