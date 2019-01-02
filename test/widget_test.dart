@@ -52,15 +52,16 @@ void main() {
     expect(paths.contains("file3"), true);
   });
 
-  test("if image collection doesn't exist create one and add image to it", () async {
+  test("if image collection doesn't exist create one and add image to it",
+      () async {
     //when
     await repository.addImage("file3");
 
     //then
     List<ImageCollection> fileContents =
-    jsonDecode(file.readAsStringSync())["collection"]
-        .map<ImageCollection>((it) => ImageCollection.fromJson(it))
-        .toList();
+        jsonDecode(file.readAsStringSync())["collection"]
+            .map<ImageCollection>((it) => ImageCollection.fromJson(it))
+            .toList();
     var paths = fileContents.first.images;
     expect(paths.contains("file3"), true);
   });

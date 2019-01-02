@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:uuid/uuid.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:timeline_app/model/image_collection.dart';
 import 'package:timeline_app/model/repository/image_repository.dart';
 
@@ -13,18 +12,17 @@ class LocalImageRepository implements ImageRepository {
   @override
   Future<void> addImage(String imagePath, [String collectionId]) async {
     final file = await _getLocalFile();
-    List<Map<String, dynamic>> jsonMap;
-    final fileExists = await file.exists();
-    if(fileExists) {
-      final string = await file.readAsString();
-      jsonMap = JsonDecoder().convert(string)["collection"];
-    }
-    if (jsonMap == null) {
-      jsonMap = List<Map<String, dynamic>>();
-    }
+
+    final string = await file.readAsString();
+    List<Map<String, dynamic>> jsonMap = JsonDecoder()
+        .convert(string)["collection"]
+        .cast<Map<String, dynamic>>();
+
+    //map items to model
     List<ImageCollection> collections = jsonMap
         .map<ImageCollection>((it) => ImageCollection.fromJson(it))
         .toList();
+    //if collectionId provided add to existing collection
     if (collectionId != null) {
       collections = collections.map((it) {
         if (it.id == collectionId) {
@@ -33,6 +31,7 @@ class LocalImageRepository implements ImageRepository {
         return it;
       }).toList();
     } else {
+      //create new collection
       final imageCollection = ImageCollection(Uuid().v1(), [imagePath]);
       collections = collections..add(imageCollection);
     }
@@ -43,12 +42,23 @@ class LocalImageRepository implements ImageRepository {
   }
 
   @override
-  Observable<List<ImageCollection>> collections() {
-    return Observable.just([]);
+  Future<List<ImageCollection>> loadCollections() async {
+    final file = await _getLocalFile();
+    final string = await file.readAsString();
+    var jsonMap = JsonDecoder().convert(string)["collection"];
+    return jsonMap
+        .map<ImageCollection>((it) => ImageCollection.fromJson(it))
+        .toList();
   }
 
   Future<File> _getLocalFile() async {
     var path = await _getPath();
-    return File(path);
+    var file = File(path);
+    final bool doesFileExist = await file.exists();
+    if (!doesFileExist) {
+      await file.writeAsString(
+          JsonEncoder().convert({"collection": List<Map<String, dynamic>>()}));
+    }
+    return file;
   }
 }
