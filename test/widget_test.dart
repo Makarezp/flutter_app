@@ -5,26 +5,63 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert';
+import 'dart:io';
 
-import 'package:timeline_app/main.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart';
+import 'package:timeline_app/model/image_collection.dart';
+import 'package:timeline_app/model/repository/image_repository.dart';
+import 'package:timeline_app/model/repository/local_image_repository.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  File file;
+  ImageRepository repository;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() {
+    var filePath = join(Directory.current.path, "test", "TimeLine.json");
+    file = File(filePath);
+    repository = LocalImageRepository(() => Future.value(filePath));
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  tearDown(() {
+    file.exists().then((val) {
+      if (val) {
+        file.deleteSync();
+      }
+    });
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test("adding image path to existing collection", () async {
+    //given
+    var firstCollection = ImageCollection("bffdf", ["file1", "file2"]);
+    var str = JsonEncoder().convert({
+      "collection": [firstCollection.toJson()]
+    });
+    await file.writeAsString(str);
+
+    //when
+    await repository.addImage("file3", "bffdf");
+
+    //then
+    List<ImageCollection> fileContents =
+        jsonDecode(file.readAsStringSync())["collection"]
+            .map<ImageCollection>((it) => ImageCollection.fromJson(it))
+            .toList();
+    var paths = fileContents.first.images;
+    expect(paths.contains("file3"), true);
+  });
+
+  test("if image collection doesn't exist create one and add image to it", () async {
+    //when
+    await repository.addImage("file3");
+
+    //then
+    List<ImageCollection> fileContents =
+    jsonDecode(file.readAsStringSync())["collection"]
+        .map<ImageCollection>((it) => ImageCollection.fromJson(it))
+        .toList();
+    var paths = fileContents.first.images;
+    expect(paths.contains("file3"), true);
   });
 }
