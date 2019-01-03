@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker_saver/image_picker_saver.dart';
 
 class HomeScreen extends StatefulWidget {
 
@@ -11,7 +10,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  File imageFile;
 
   @override
   Widget build(BuildContext context) {
@@ -20,20 +18,11 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text("Camero"),
         ),
         body: Container(
-          child: imageFile != null ?
-          Image.file(imageFile) : null,
+
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: getImage,
+          onPressed: () => print("bydle"),
           child: Icon(Icons.add_a_photo),
         ));
-  }
-
-  Future getImage() async {
-    var image = await ImagePickerSaver.pickImage(source: ImageSource.camera);
-    await ImagePickerSaver.saveFile(fileData: image.readAsBytesSync());
-    setState(() {
-      imageFile = image;
-    });
   }
 }
