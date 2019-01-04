@@ -12,16 +12,9 @@ class LocalImageRepository implements ImageRepository {
   @override
   Future<void> addImage(String imagePath, [String collectionId]) async {
     final file = await _getLocalFile();
-
     final string = await file.readAsString();
-    List<Map<String, dynamic>> jsonMap = JsonDecoder()
-        .convert(string)["collection"]
-        .cast<Map<String, dynamic>>();
-
     //map items to model
-    List<ImageCollection> collections = jsonMap
-        .map<ImageCollection>((it) => ImageCollection.fromJson(it))
-        .toList();
+    List<ImageCollection> collections = _decodeImageCollection(string);
     //if collectionId provided add to existing collection
     if (collectionId != null) {
       collections = collections.map((it) {
@@ -36,6 +29,10 @@ class LocalImageRepository implements ImageRepository {
       collections = collections..add(imageCollection);
     }
 
+    return _saveCollection(collections, file);
+  }
+
+  Future<File> _saveCollection(List<ImageCollection> collections, File file) {
     final collectionsJson = JsonEncoder()
         .convert({"collection": collections.map((e) => e.toJson()).toList()});
     return file.writeAsString(collectionsJson);
@@ -44,9 +41,27 @@ class LocalImageRepository implements ImageRepository {
   @override
   Future<List<ImageCollection>> loadCollections() async {
     final file = await _getLocalFile();
-    final string = await file.readAsString();
+    final json = await file.readAsString();
+    return _decodeImageCollection(json);
+  }
+
+  @override
+  Future<void> deleteImage(String path) async {
+    final file = await _getLocalFile();
+    final json = await file.readAsString();
+    final collection = _decodeImageCollection(json);
+    final collectionToSave = collection.map((e) {
+      if(e.images.contains(path)) {
+        e.images.remove(path);
+      }
+      return e;
+    }).where((e) => e.images.isNotEmpty).toList();
+    return _saveCollection(collectionToSave, file);
+  }
+
+  List<ImageCollection> _decodeImageCollection(String json) {
     var jsonMap = JsonDecoder()
-        .convert(string)["collection"]
+        .convert(json)["collection"]
         .cast<Map<String, dynamic>>();
     return jsonMap
         .map<ImageCollection>((it) => ImageCollection.fromJson(it))

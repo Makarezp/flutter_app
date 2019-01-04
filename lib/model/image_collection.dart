@@ -11,4 +11,17 @@ class ImageCollection {
         this.images = json["images"].cast<String>();
 
   Map<String, dynamic> toJson() => {"id": id, "images": images};
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is ImageCollection &&
+              runtimeType == other.runtimeType &&
+              id == other.id &&
+              images == other.images;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      images.hashCode;
 }

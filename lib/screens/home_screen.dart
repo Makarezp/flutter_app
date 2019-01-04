@@ -58,12 +58,15 @@ class _HomeScreenState extends State<HomeScreen> {
         scrollDirection: Axis.horizontal,
         itemCount: data[index].images.length,
         itemBuilder: (context, imageIndex) {
+          final imagePath = data[index].images[imageIndex];
           return GestureDetector(
             onDoubleTap: () =>
                 block.addImage(collectionId: data[index].id),
+            onLongPress: () => block.deleteImage(imagePath),
             child: Container(
-              child: Image.file(File(data[index].images[imageIndex]),
+              child: Image.file(File(imagePath),
                 fit: BoxFit.contain,
+                scale: 0.01,
                 height: 200,),
             ),
           );

@@ -18,4 +18,8 @@ class ImageBlock {
     var path = await ImagePickerSaver.saveFile(fileData: image.readAsBytesSync());
     _repo.addImage(path, collectionId);
   }
+
+  Future<void> deleteImage(String path) async {
+    await _repo.deleteImage(path);
+  }
 }

@@ -71,10 +71,49 @@ void main() {
     await repository.addImage("file3");
     await repository.addImage("file4");
 
-    //then
+    //expect
     final collections = await repository.loadCollections();
     expect(collections.length, 2);
     expect(collections[0].images[0], "file3");
     expect(collections[1].images[0], "file4");
+  });
+
+  test("removing image with collections with more than one image removes this iamge", () async {
+    //given
+    var firstCollection = ImageCollection("bffdf", ["file1", "file2"]);
+    var str = JsonEncoder().convert({
+      "collection": [firstCollection.toJson()]
+    });
+    await file.writeAsString(str);
+
+    //when
+    await repository.deleteImage("file2");
+
+    //then
+    List<ImageCollection> fileContents =
+    jsonDecode(file.readAsStringSync())["collection"]
+        .map<ImageCollection>((it) => ImageCollection.fromJson(it))
+        .toList();
+    var paths = fileContents.first.images;
+    expect(!paths.contains("file2"), true);
+  });
+
+  test("removing image with collections with one item removes collection", () async {
+    //given
+    var firstCollection = ImageCollection("bffdf", ["file1"]);
+    var str = JsonEncoder().convert({
+      "collection": [firstCollection.toJson()]
+    });
+    await file.writeAsString(str);
+
+    //when
+    await repository.deleteImage("file1");
+
+    //then
+    List<ImageCollection> fileContents =
+    jsonDecode(file.readAsStringSync())["collection"]
+        .map<ImageCollection>((it) => ImageCollection.fromJson(it))
+        .toList();
+    expect(fileContents.isEmpty, true);
   });
 }
