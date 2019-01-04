@@ -29,6 +29,6 @@ class App extends StatelessWidget {
         .then((val) => join(val.path, "Timeline.json"));
     var localImageRepository = LocalImageRepository(getPath);
     var reactiveRepository = ReactiveImageRepositoryImpl(localImageRepository);
-    return ImageBlock(reactiveRepository);
+    return ImageBlock(reactiveRepository, {});
   }
 }

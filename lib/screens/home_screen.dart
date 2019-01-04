@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:timeline_app/block/image_block.dart';
@@ -11,6 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   @override
   Widget build(BuildContext context) {
     var block = ImageBlockProvider.of(context);
@@ -23,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: StreamBuilder(
               stream: block.collections,
               builder:
-                  (context, AsyncSnapshot<List<ImageCollection>> snapshot) {
+                  (context, AsyncSnapshot<List<UIImageCollection>> snapshot) {
                 if (!snapshot.hasData) {
                   return Text("Loading");
                 }
@@ -37,39 +39,43 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
   }
 
-  Widget buildCollectionList(List<ImageCollection> data, ImageBlock block) {
+  Widget buildCollectionList(List<UIImageCollection> data, ImageBlock block) {
     return ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) {
+          print("building upper list $index");
           return Column(
             children: <Widget>[
               Text("Title", style: Theme.of(context).textTheme.title),
-              Container(
-                  height: 200,
-                  child: buildListView(data, index, block)),
+              Container(height: 200, child: buildListView(data, index, block)),
             ],
           );
         });
   }
 
-  ListView buildListView(List<ImageCollection> data, int index,
-      ImageBlock block) {
+  ListView buildListView(
+      List<UIImageCollection> data, int index, ImageBlock block) {
     return ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: data[index].images.length,
+        itemCount: data[index].thumbnails.length,
         itemBuilder: (context, imageIndex) {
-          final imagePath = data[index].images[imageIndex];
-          return GestureDetector(
-            onDoubleTap: () =>
-                block.addImage(collectionId: data[index].id),
-            onLongPress: () => block.deleteImage(imagePath),
-            child: Container(
-              child: Image.file(File(imagePath),
-                fit: BoxFit.contain,
-                scale: 0.01,
-                height: 200,),
-            ),
-          );
+          final future = data[index].thumbnails[imageIndex];
+          print("building lower list  $imageIndex");
+          return FutureBuilder(
+              future: future,
+              builder: (context, AsyncSnapshot<List<int>> snapshot) {
+                if (snapshot.hasData) {
+                  return GestureDetector(
+                      onDoubleTap: () =>
+                          block.addImage(collectionId: data[index].id),
+                      child: Container(
+                        child: Image.memory(Uint8List.fromList(snapshot.data)),
+                      ));
+                } else {
+                  return Text("Loading");
+                }
+              });
         });
   }
+
 }

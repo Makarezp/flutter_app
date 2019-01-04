@@ -24,6 +24,7 @@ dependencies:
   path_provider: 0.4.1
   rxdart: ^0.20.0
   uuid: 1.0.3
+  flutter_image_compress: ^0.2.3
 
 
 dev_dependencies:
