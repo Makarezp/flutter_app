@@ -62,13 +62,15 @@ class _HomeScreenState extends State<HomeScreen> {
           print("building lower list  $imageIndex");
           return FutureBuilder(
               future: imageFuture,
-              builder: (context, AsyncSnapshot<Uint8List> snapshot) {
+              builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
                 if (snapshot.hasData) {
                   return GestureDetector(
                       onDoubleTap: () =>
                           block.addImage(collectionId: data[index].id),
+                      onLongPress: () =>
+                      block.deleteImage(snapshot.data.path),
                       child: Container(
-                        child: Image.memory(snapshot.data),
+                        child: Image.memory(snapshot.data.image),
                       ));
                 } else {
                   return Text("Loading");

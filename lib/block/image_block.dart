@@ -10,7 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 class ImageBlock {
   final ReactiveImageRepository _repo;
 
-  final Map<String, Future<Uint8List>> _cache;
+  final Map<String, Future<Thumbnail>> _cache;
 
   final Observable<List<UIImageCollection>> _collections;
 
@@ -36,16 +36,16 @@ class ImageBlock {
 class UIImageCollection {
   final String id;
 
-  final List<Future<Uint8List>> thumbnails;
+  final List<Future<Thumbnail>> thumbnails;
 
   UIImageCollection.fromImageCollection(
-      ImageCollection collection, Map<String, Future<Uint8List>> cache)
+      ImageCollection collection, Map<String, Future<Thumbnail>> cache)
       : this.id = collection.id,
         this.thumbnails = collection.images.map((path) {
           if (!cache.containsKey(path)) {
             cache[path] = FlutterImageCompress.compressWithFile(path,
                 minWidth: 1000, minHeight: 1000, quality: 90)
-                .then((value) => Uint8List.fromList(value));
+                .then((value) => Thumbnail(path, Uint8List.fromList(value)));
           }
           return cache[path];
         }).toList();
@@ -60,4 +60,24 @@ class UIImageCollection {
 
   @override
   int get hashCode => id.hashCode ^ thumbnails.hashCode;
+}
+
+
+class Thumbnail {
+
+  final String path;
+
+  final Uint8List image;
+
+  Thumbnail(this.path, this.image);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Thumbnail &&
+              runtimeType == other.runtimeType &&
+              path == other.path;
+
+  @override
+  int get hashCode => path.hashCode;
 }
