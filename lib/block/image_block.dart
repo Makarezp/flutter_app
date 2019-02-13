@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:rxdart/rxdart.dart';
 import 'package:timeline_app/model/image_collection.dart';
 import 'package:timeline_app/model/repository/reactive_image_repository.dart';
@@ -7,7 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 class ImageBlock {
   final ReactiveImageRepository _repo;
 
-  final Map<String, Future<List<int>>> _cache;
+  final Map<String, Future<Uint8List>> _cache;
 
   final Observable<List<UIImageCollection>> _collections;
 
@@ -33,15 +36,16 @@ class ImageBlock {
 class UIImageCollection {
   final String id;
 
-  final List<Future<List<int>>> thumbnails;
+  final List<Future<Uint8List>> thumbnails;
 
   UIImageCollection.fromImageCollection(
-      ImageCollection collection, Map<String, Future<List<int>>> cache)
+      ImageCollection collection, Map<String, Future<Uint8List>> cache)
       : this.id = collection.id,
         this.thumbnails = collection.images.map((path) {
           if (!cache.containsKey(path)) {
             cache[path] = FlutterImageCompress.compressWithFile(path,
-                minWidth: 1000, minHeight: 1000, quality: 90);
+                minWidth: 1000, minHeight: 1000, quality: 90)
+                .then((value) => Uint8List.fromList(value));
           }
           return cache[path];
         }).toList();

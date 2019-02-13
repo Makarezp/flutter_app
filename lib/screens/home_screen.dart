@@ -12,7 +12,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
   Widget build(BuildContext context) {
     var block = ImageBlockProvider.of(context);
@@ -59,17 +58,17 @@ class _HomeScreenState extends State<HomeScreen> {
         scrollDirection: Axis.horizontal,
         itemCount: data[index].thumbnails.length,
         itemBuilder: (context, imageIndex) {
-          final future = data[index].thumbnails[imageIndex];
+          final imageFuture = data[index].thumbnails[imageIndex];
           print("building lower list  $imageIndex");
           return FutureBuilder(
-              future: future,
-              builder: (context, AsyncSnapshot<List<int>> snapshot) {
+              future: imageFuture,
+              builder: (context, AsyncSnapshot<Uint8List> snapshot) {
                 if (snapshot.hasData) {
                   return GestureDetector(
                       onDoubleTap: () =>
                           block.addImage(collectionId: data[index].id),
                       child: Container(
-                        child: Image.memory(Uint8List.fromList(snapshot.data)),
+                        child: Image.memory(snapshot.data),
                       ));
                 } else {
                   return Text("Loading");
@@ -77,5 +76,4 @@ class _HomeScreenState extends State<HomeScreen> {
               });
         });
   }
-
 }
