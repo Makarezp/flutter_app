@@ -31,7 +31,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => block.addImage(),
+            onPressed: () {
+              showDialog<String>(
+                context: context,
+                builder: (BuildContext context) => CreateNewCollectionDialog(),
+              );
+            },
             child: Icon(Icons.add_a_photo),
           )),
     );
@@ -59,36 +64,113 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Wrap(
           spacing: 3,
           runSpacing: 3,
-          children: List.generate(data[index].thumbnails.length, (imageIndex) {
-            final imageFuture = data[index].thumbnails[imageIndex];
+          children:
+              List.generate(data[index].thumbnails.length + 1, (imageIndex) {
             return LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 double size = (constraints.maxWidth - 6) / 3;
                 return Container(
-                  height: size,
-                  width: size,
-                  child: FutureBuilder(
-                      future: imageFuture,
-                      builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
-                        if (snapshot.hasData) {
-                          return GestureDetector(
-                              onTap: () => print("Bydle"),
-                              onDoubleTap: () =>
-                                  block.addImage(collectionId: data[index].id),
-                              onLongPress: () =>
-                                  block.deleteImage(snapshot.data.path),
-                              child: Container(
-                                child: Image.memory(snapshot.data.image,
-                                    fit: BoxFit.cover),
-                              ));
-                        } else {
-                          return Text("Loading");
-                        }
-                      }),
-                );
+                    height: size,
+                    width: size,
+                    child:
+                        buildImageOrAddButton(imageIndex, data, index, block));
               },
             );
           }).toList()),
+    );
+  }
+
+  Widget buildImageOrAddButton(int imageIndex, List<UIImageCollection> data,
+      int index, ImageBlock block) {
+    if (imageIndex == data[index].thumbnails.length) {
+      return Material(
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.grey.withOpacity(0.1),
+          child: InkWell(
+            onTap: () => block.addImage(collectionId: data[index].id),
+            child: Center(
+              child: Icon(
+                Icons.add_circle_outline,
+                size: 36,
+                color: Colors.blue,
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      final imageFuture = data[index].thumbnails[imageIndex];
+      return FutureBuilder(
+          future: imageFuture,
+          builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
+            if (snapshot.hasData) {
+              return GestureDetector(
+                  onTap: () => print("Bydle"),
+                  onLongPress: () => block.deleteImage(snapshot.data.path),
+                  child: Container(
+                    child: Image.memory(snapshot.data.image, fit: BoxFit.cover),
+                  ));
+            } else {
+              return Text("Loading");
+            }
+          });
+    }
+    ;
+  }
+}
+
+class CreateNewCollectionDialog extends StatefulWidget {
+  const CreateNewCollectionDialog({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  _CreateNewCollectionDialogState createState() =>
+      _CreateNewCollectionDialogState();
+}
+
+class _CreateNewCollectionDialogState extends State<CreateNewCollectionDialog> {
+  var _title = "";
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      title: const Text(
+        "CREATE NEW COLLECTION",
+        textAlign: TextAlign.center,
+        style: TextStyle(
+            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black54),
+      ),
+      contentPadding: EdgeInsets.all(16),
+      children: <Widget>[
+        Column(
+          children: <Widget>[
+            TextField(
+              onChanged: (text) {
+                setState(() {
+                  _title = text;
+                });
+              },
+              decoration: InputDecoration(
+                labelText: "Title",
+              ),
+            ),
+            SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              child: RaisedButton(
+                onPressed: _title == "" ? null : () {
+
+                },
+                child: Text("ADD PHOTO"),
+              ),
+            ),
+          ],
+        )
+      ],
     );
   }
 }
