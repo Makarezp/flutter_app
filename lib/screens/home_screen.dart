@@ -34,7 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               showDialog<String>(
                 context: context,
-                builder: (BuildContext context) => CreateNewCollectionDialog(),
+                builder: (BuildContext context) =>
+                    CreateNewCollectionDialog(block: block),
               );
             },
             child: Icon(Icons.add_a_photo),
@@ -122,9 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class CreateNewCollectionDialog extends StatefulWidget {
-  const CreateNewCollectionDialog({
-    Key key,
-  }) : super(key: key);
+  const CreateNewCollectionDialog({Key key, this.block}) : super(key: key);
+
+  final ImageBlock block;
 
   @override
   _CreateNewCollectionDialogState createState() =>
@@ -162,10 +163,17 @@ class _CreateNewCollectionDialogState extends State<CreateNewCollectionDialog> {
             Container(
               width: double.infinity,
               child: RaisedButton(
-                onPressed: _title == "" ? null : () {
-
-                },
-                child: Text("ADD PHOTO"),
+                color: Colors.blue,
+                onPressed: _title == ""
+                    ? null
+                    : () {
+                        widget.block.addImage();
+                        Navigator.of(context).pop();
+                      },
+                child: Text(
+                  "ADD PHOTO",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
           ],
