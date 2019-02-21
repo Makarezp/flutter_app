@@ -48,13 +48,13 @@ class UIImageCollection {
       ImageCollection collection, Map<String, Future<Thumbnail>> cache)
       : this.id = collection.id,
         this.title = collection.title,
-        this.thumbnails = collection.images.map((path) {
-          if (!cache.containsKey(path)) {
-            cache[path] = FlutterImageCompress.compressWithFile(path,
-                    minWidth: 1000, minHeight: 1000, quality: 90)
-                .then((value) => Thumbnail(path, Uint8List.fromList(value)));
+        this.thumbnails = collection.images.map((img) {
+          if (!cache.containsKey(img.path)) {
+            cache[img.path] = FlutterImageCompress.compressWithFile(img.path,
+                    minWidth: 300, minHeight: 300, quality: 90)
+                .then((value) => Thumbnail(img.path, Uint8List.fromList(value)));
           }
-          return cache[path];
+          return cache[img.path];
         }).toList();
 
   @override

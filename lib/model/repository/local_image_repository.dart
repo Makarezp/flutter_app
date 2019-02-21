@@ -9,7 +9,6 @@ class LocalImageRepository implements ImageRepository {
 
   LocalImageRepository(this._getPath);
 
-
   @override
   Future<String> createCollection(String title) async {
     final file = await _getLocalFile();
@@ -27,12 +26,12 @@ class LocalImageRepository implements ImageRepository {
     final string = await file.readAsString();
     //map items to model
     List<ImageCollection> collections = _decodeImageCollection(string);
-      collections = collections.map((it) {
-        if (it.id == collectionId) {
-          it.images.add(imagePath);
-        }
-        return it;
-      }).toList();
+    collections = collections.map((it) {
+      if (it.id == collectionId) {
+        it.images.add(ImageEntity(imagePath));
+      }
+      return it;
+    }).toList();
     return _saveCollection(collections, file);
   }
 
@@ -54,19 +53,21 @@ class LocalImageRepository implements ImageRepository {
     final file = await _getLocalFile();
     final json = await file.readAsString();
     final collection = _decodeImageCollection(json);
-    final collectionToSave = collection.map((e) {
-      if(e.images.contains(path)) {
-        e.images.remove(path);
-      }
-      return e;
-    }).where((e) => e.images.isNotEmpty).toList();
+    final collectionToSave = collection
+        .map((e) {
+          if (e.images.contains(path)) {
+            e.images.remove(path);
+          }
+          return e;
+        })
+        .where((e) => e.images.isNotEmpty)
+        .toList();
     return _saveCollection(collectionToSave, file);
   }
 
   List<ImageCollection> _decodeImageCollection(String json) {
-    var jsonMap = JsonDecoder()
-        .convert(json)["collection"]
-        .cast<Map<String, dynamic>>();
+    var jsonMap =
+        JsonDecoder().convert(json)["collection"].cast<Map<String, dynamic>>();
     return jsonMap
         .map<ImageCollection>((it) => ImageCollection.fromJson(it))
         .toList();

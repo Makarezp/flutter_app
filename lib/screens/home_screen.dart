@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:timeline_app/block/image_block.dart';
 import 'package:timeline_app/block/image_block_provider.dart';
 import 'package:timeline_app/model/image_collection.dart';
+import 'package:timeline_app/screens/detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -48,37 +49,38 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: data.length,
         itemBuilder: (context, index) {
           print("building upper list $index");
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(data[index].title, style: Theme.of(context).textTheme.title),
-              buildImagesView(data, index, block),
-            ],
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(data[index].title.toUpperCase(),
+                    style: Theme.of(context).textTheme.title),
+                Divider(),
+                buildImagesView(data, index, block),
+              ],
+            ),
           );
         });
   }
 
   Widget buildImagesView(
       List<UIImageCollection> data, int index, ImageBlock block) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Wrap(
-          spacing: 3,
-          runSpacing: 3,
-          children:
-              List.generate(data[index].thumbnails.length + 1, (imageIndex) {
-            return LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                double size = (constraints.maxWidth - 6) / 3;
-                return Container(
-                    height: size,
-                    width: size,
-                    child:
-                        buildImageOrAddButton(imageIndex, data, index, block));
-              },
-            );
-          }).toList()),
-    );
+    return Wrap(
+        spacing: 3,
+        runSpacing: 3,
+        children:
+            List.generate(data[index].thumbnails.length + 1, (imageIndex) {
+          return LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              double size = (constraints.maxWidth - 6) / 3;
+              return Container(
+                  height: size,
+                  width: size,
+                  child: buildImageOrAddButton(imageIndex, data, index, block));
+            },
+          );
+        }).toList());
   }
 
   Widget buildImageOrAddButton(int imageIndex, List<UIImageCollection> data,
@@ -108,7 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
             if (snapshot.hasData) {
               return GestureDetector(
-                  onTap: () => print("Bydle"),
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (context) {
+                        return DetailPage();
+                  })),
                   onLongPress: () => block.deleteImage(snapshot.data.path),
                   child: Container(
                     child: Image.memory(snapshot.data.image, fit: BoxFit.cover),
