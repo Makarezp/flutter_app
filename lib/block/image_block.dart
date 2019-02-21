@@ -22,6 +22,11 @@ class ImageBlock {
 
   Observable<List<UIImageCollection>> get collections => _collections;
 
+  Observable<UIImageCollection> getCollection(String id) {
+    return collections
+        .map((it) => it.firstWhere((collection) => collection.id == id));
+  }
+
   Future<String> createCollection(String title) {
     return _repo.createCollection(title);
   }
@@ -42,17 +47,22 @@ class UIImageCollection {
 
   final String title;
 
+  final List<UIImageMeta> uiImages;
+
   final List<Future<Thumbnail>> thumbnails;
 
   UIImageCollection.fromImageCollection(
       ImageCollection collection, Map<String, Future<Thumbnail>> cache)
       : this.id = collection.id,
+        this.uiImages =
+            collection.images.map((img) => UIImageMeta(img.path)).toList(),
         this.title = collection.title,
         this.thumbnails = collection.images.map((img) {
           if (!cache.containsKey(img.path)) {
             cache[img.path] = FlutterImageCompress.compressWithFile(img.path,
                     minWidth: 300, minHeight: 300, quality: 90)
-                .then((value) => Thumbnail(img.path, Uint8List.fromList(value)));
+                .then(
+                    (value) => Thumbnail(img.path, Uint8List.fromList(value)));
           }
           return cache[img.path];
         }).toList();
@@ -80,6 +90,22 @@ class Thumbnail {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is Thumbnail &&
+          runtimeType == other.runtimeType &&
+          path == other.path;
+
+  @override
+  int get hashCode => path.hashCode;
+}
+
+class UIImageMeta {
+  final String path;
+
+  UIImageMeta(this.path);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UIImageMeta &&
           runtimeType == other.runtimeType &&
           path == other.path;
 

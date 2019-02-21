@@ -104,19 +104,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else {
-      final imageFuture = data[index].thumbnails[imageIndex];
+      final collection = data[index];
+      final imageFuture = collection.thumbnails[imageIndex];
       return FutureBuilder(
           future: imageFuture,
           builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
             if (snapshot.hasData) {
               return GestureDetector(
-                  onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (context) {
-                        return DetailPage();
-                  })),
+                  onTap: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return DetailPage(
+                            collection.id, collection.uiImages[imageIndex]);
+                      })),
                   onLongPress: () => block.deleteImage(snapshot.data.path),
                   child: Container(
-                    child: Image.memory(snapshot.data.image, fit: BoxFit.cover),
+                    child: Hero(
+                        tag: snapshot.data.path,
+                        child: Image.memory(snapshot.data.image,
+                            fit: BoxFit.cover)),
                   ));
             } else {
               return Text("Loading");
