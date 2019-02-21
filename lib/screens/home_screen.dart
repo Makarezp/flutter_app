@@ -43,39 +43,52 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           print("building upper list $index");
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text("Title", style: Theme.of(context).textTheme.title),
-              Container(height: 200, child: buildListView(data, index, block)),
+              buildImagesView(data, index, block),
             ],
           );
         });
   }
 
-  ListView buildListView(
+  Widget buildImagesView(
       List<UIImageCollection> data, int index, ImageBlock block) {
-    return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: data[index].thumbnails.length,
-        itemBuilder: (context, imageIndex) {
-          final imageFuture = data[index].thumbnails[imageIndex];
-          print("building lower list  $imageIndex");
-          return FutureBuilder(
-              future: imageFuture,
-              builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
-                if (snapshot.hasData) {
-                  return GestureDetector(
-                    onTap: () => print("Bydle"),
-                      onDoubleTap: () =>
-                          block.addImage(collectionId: data[index].id),
-                      onLongPress: () =>
-                      block.deleteImage(snapshot.data.path),
-                      child: Container(
-                        child: Image.memory(snapshot.data.image),
-                      ));
-                } else {
-                  return Text("Loading");
-                }
-              });
-        });
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Wrap(
+          spacing: 3,
+          runSpacing: 3,
+          children: List.generate(data[index].thumbnails.length, (imageIndex) {
+            final imageFuture = data[index].thumbnails[imageIndex];
+            return LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                double size = (constraints.maxWidth - 6) / 3;
+                return Container(
+                  height: size,
+                  width: size,
+                  child: FutureBuilder(
+                      future: imageFuture,
+                      builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
+                        if (snapshot.hasData) {
+                          return GestureDetector(
+                              onTap: () => print("Bydle"),
+                              onDoubleTap: () =>
+                                  block.addImage(collectionId: data[index].id),
+                              onLongPress: () =>
+                                  block.deleteImage(snapshot.data.path),
+                              child: Container(
+                                child: Image.memory(snapshot.data.image,
+                                    fit: BoxFit.cover),
+                              ));
+                        } else {
+                          return Text("Loading");
+                        }
+                      }),
+                );
+              },
+            );
+          }).toList()),
+    );
   }
 }
