@@ -16,26 +16,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     var block = ImageBlockProvider.of(context);
 
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Camero"),
-        ),
-        body: Container(
-          child: StreamBuilder(
-              stream: block.collections,
-              builder:
-                  (context, AsyncSnapshot<List<UIImageCollection>> snapshot) {
-                if (!snapshot.hasData) {
-                  return Text("Loading");
-                }
+    return SafeArea(
+      child: Scaffold(
+          body: Container(
+            child: StreamBuilder(
+                stream: block.collections,
+                builder:
+                    (context, AsyncSnapshot<List<UIImageCollection>> snapshot) {
+                  if (!snapshot.hasData) {
+                    return Text("Loading");
+                  }
 
-                return buildCollectionList(snapshot.data, block);
-              }),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => block.addImage(),
-          child: Icon(Icons.add_a_photo),
-        ));
+                  return buildCollectionList(snapshot.data, block);
+                }),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => block.addImage(),
+            child: Icon(Icons.add_a_photo),
+          )),
+    );
   }
 
   Widget buildCollectionList(List<UIImageCollection> data, ImageBlock block) {
@@ -65,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, AsyncSnapshot<Thumbnail> snapshot) {
                 if (snapshot.hasData) {
                   return GestureDetector(
+                    onTap: () => print("Bydle"),
                       onDoubleTap: () =>
                           block.addImage(collectionId: data[index].id),
                       onLongPress: () =>

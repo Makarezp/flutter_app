@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:photos_saver/photos_saver.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timeline_app/model/image_collection.dart';
 import 'package:timeline_app/model/repository/reactive_image_repository.dart';
-import 'package:image_picker_saver/image_picker_saver.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ImageBlock {
   final ReactiveImageRepository _repo;
@@ -22,9 +23,9 @@ class ImageBlock {
   Observable<List<UIImageCollection>> get collections => _collections;
 
   Future<void> addImage({String collectionId}) async {
-    var image = await ImagePickerSaver.pickImage(source: ImageSource.camera);
+    var image = await ImagePicker.pickImage(source: ImageSource.camera);
     var path =
-        await ImagePickerSaver.saveFile(fileData: image.readAsBytesSync());
+        await PhotosSaver.saveFile(fileData: image.readAsBytesSync());
     _repo.addImage(path, collectionId);
   }
 
