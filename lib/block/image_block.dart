@@ -15,17 +15,20 @@ class ImageBlock {
 
   final Observable<List<UIImageCollection>> _collections;
 
-  ImageBlock(this._repo, this._cache) :
-    _collections = _repo.collections().map((e) => e
-        .map((i) => UIImageCollection.fromImageCollection(i, _cache))
-    .toList());
+  ImageBlock(this._repo, this._cache)
+      : _collections = _repo.collections().map((e) => e
+            .map((i) => UIImageCollection.fromImageCollection(i, _cache))
+            .toList());
 
   Observable<List<UIImageCollection>> get collections => _collections;
 
-  Future<void> addImage({String collectionId}) async {
+  Future<String> createCollection(String title) {
+    return _repo.createCollection(title);
+  }
+
+  Future<void> addImage(String collectionId) async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
-    var path =
-        await PhotosSaver.saveFile(fileData: image.readAsBytesSync());
+    var path = await PhotosSaver.saveFile(fileData: image.readAsBytesSync());
     _repo.addImage(path, collectionId);
   }
 
@@ -37,15 +40,18 @@ class ImageBlock {
 class UIImageCollection {
   final String id;
 
+  final String title;
+
   final List<Future<Thumbnail>> thumbnails;
 
   UIImageCollection.fromImageCollection(
       ImageCollection collection, Map<String, Future<Thumbnail>> cache)
       : this.id = collection.id,
+        this.title = collection.title,
         this.thumbnails = collection.images.map((path) {
           if (!cache.containsKey(path)) {
             cache[path] = FlutterImageCompress.compressWithFile(path,
-                minWidth: 1000, minHeight: 1000, quality: 90)
+                    minWidth: 1000, minHeight: 1000, quality: 90)
                 .then((value) => Thumbnail(path, Uint8List.fromList(value)));
           }
           return cache[path];
@@ -63,9 +69,7 @@ class UIImageCollection {
   int get hashCode => id.hashCode ^ thumbnails.hashCode;
 }
 
-
 class Thumbnail {
-
   final String path;
 
   final Uint8List image;
@@ -75,9 +79,9 @@ class Thumbnail {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Thumbnail &&
-              runtimeType == other.runtimeType &&
-              path == other.path;
+      other is Thumbnail &&
+          runtimeType == other.runtimeType &&
+          path == other.path;
 
   @override
   int get hashCode => path.hashCode;

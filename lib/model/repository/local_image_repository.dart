@@ -9,26 +9,30 @@ class LocalImageRepository implements ImageRepository {
 
   LocalImageRepository(this._getPath);
 
+
   @override
-  Future<void> addImage(String imagePath, [String collectionId]) async {
+  Future<String> createCollection(String title) async {
+    final file = await _getLocalFile();
+    final string = await file.readAsString();
+    List<ImageCollection> collections = _decodeImageCollection(string);
+    final imageCollection = ImageCollection(Uuid().v1(), [], title);
+    collections = collections..add(imageCollection);
+    await _saveCollection(collections, file);
+    return imageCollection.id;
+  }
+
+  @override
+  Future<void> addImage(String imagePath, String collectionId) async {
     final file = await _getLocalFile();
     final string = await file.readAsString();
     //map items to model
     List<ImageCollection> collections = _decodeImageCollection(string);
-    //if collectionId provided add to existing collection
-    if (collectionId != null) {
       collections = collections.map((it) {
         if (it.id == collectionId) {
           it.images.add(imagePath);
         }
         return it;
       }).toList();
-    } else {
-      //create new collection
-      final imageCollection = ImageCollection(Uuid().v1(), [imagePath]);
-      collections = collections..add(imageCollection);
-    }
-
     return _saveCollection(collections, file);
   }
 

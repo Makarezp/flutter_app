@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text("Title", style: Theme.of(context).textTheme.title),
+              Text(data[index].title, style: Theme.of(context).textTheme.title),
               buildImagesView(data, index, block),
             ],
           );
@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
           height: double.infinity,
           color: Colors.grey.withOpacity(0.1),
           child: InkWell(
-            onTap: () => block.addImage(collectionId: data[index].id),
+            onTap: () => block.addImage(data[index].id),
             child: Center(
               child: Icon(
                 Icons.add_circle_outline,
@@ -166,8 +166,10 @@ class _CreateNewCollectionDialogState extends State<CreateNewCollectionDialog> {
                 color: Colors.blue,
                 onPressed: _title == ""
                     ? null
-                    : () {
-                        widget.block.addImage();
+                    : () async {
+                        final collectionId =
+                            await widget.block.createCollection(_title);
+                        widget.block.addImage(collectionId);
                         Navigator.of(context).pop();
                       },
                 child: Text(
