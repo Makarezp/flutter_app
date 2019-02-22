@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onLongPress: () => block.deleteImage(snapshot.data.path),
                   child: Container(
                     child: Hero(
-                        tag: snapshot.data.path,
+                        tag: imageIndex,
                         child: Image.memory(snapshot.data.image,
                             fit: BoxFit.cover)),
                   ));

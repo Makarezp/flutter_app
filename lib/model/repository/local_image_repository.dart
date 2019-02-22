@@ -55,9 +55,7 @@ class LocalImageRepository implements ImageRepository {
     final collection = _decodeImageCollection(json);
     final collectionToSave = collection
         .map((e) {
-          if (e.images.contains(path)) {
-            e.images.remove(path);
-          }
+            e.images.removeWhere((it) => it.path == path);
           return e;
         })
         .where((e) => e.images.isNotEmpty)

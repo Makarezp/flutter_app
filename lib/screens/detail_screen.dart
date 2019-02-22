@@ -23,6 +23,7 @@ class _DetailPageState extends State<DetailPage> {
   UIImageCollection _collection;
   StreamSubscription _sub;
   int previousPage = -1;
+  int currPage = -1;
 
   PageController pageController;
 
@@ -33,8 +34,10 @@ class _DetailPageState extends State<DetailPage> {
     _block = ImageBlockProvider.of(context);
     _sub = _block.getCollection(_collectionId).listen((collection) {
       setState(() {
+        final initPage = collection.uiImages.indexOf(_currImage);
+        currPage = initPage;
         pageController = PageController(
-          initialPage: collection.uiImages.indexOf(_currImage),
+          initialPage: initPage,
         );
         _collection = collection;
       });
@@ -51,21 +54,34 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Scaffold(
-          body: _collection != null
-              ? PageView.builder(
-                  onPageChanged: (pageIndex) {
-                    _precache(pageIndex, context);
-                  },
-                  controller: pageController,
-                  itemCount: _collection.uiImages.length,
-                  itemBuilder: (context, index) {
-                    _initialPrecache(index, context);
-                    return Center(
-                      child: Image.file(File(_collection.uiImages[index].path)),
-                    );
-                  })
-              : CircularProgressIndicator()),
+      child: Scaffold(body: buildPageView(context)),
+    );
+  }
+
+  PageView buildPageView(BuildContext context) {
+    return PageView.builder(
+        onPageChanged: (pageIndex) {
+          _precache(pageIndex, context);
+          setState(() {
+            currPage = pageIndex;
+          });
+        },
+        controller: pageController,
+        itemCount: _collection.uiImages.length,
+        itemBuilder: (context, index) {
+          _initialPrecache(index, context);
+          return Center(child: buildImageContainer(index));
+        });
+  }
+
+  Widget buildImageContainer(int index) {
+    return Hero(
+      tag: currPage == index ? index : -1,
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        child: Image.file(File(_collection.uiImages[index].path)),
+      ),
     );
   }
 
