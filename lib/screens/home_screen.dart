@@ -114,12 +114,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => Navigator.push(context,
                           MaterialPageRoute(builder: (context) {
                         return DetailPage(
-                            collection.id, collection.uiImages[imageIndex]);
+                            collection.id,
+                            collection.uiImages[imageIndex],
+                            snapshot.data.image,
+                            collection);
                       })),
                   onLongPress: () => block.deleteImage(snapshot.data.path),
                   child: Container(
                     child: Hero(
-                        tag: imageIndex,
+                        tag: collection.uiImages[imageIndex].path,
                         child: Image.memory(snapshot.data.image,
                             fit: BoxFit.cover)),
                   ));
