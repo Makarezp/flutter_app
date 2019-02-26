@@ -31,8 +31,10 @@ class _DetailPageState extends State<DetailPage> {
   Uint8List image;
   UIImageCollection initCollection;
   List<Uint8List> images = [];
+  bool tapingUpperContainer = false;
 
   PageController pageController;
+  PageController lowerPageController;
 
   _DetailPageState(
       this._collectionId, this._currImage, this.image, this.initCollection);
@@ -61,17 +63,25 @@ class _DetailPageState extends State<DetailPage> {
         stream: _block.getCollection(_collectionId),
         initialData: initCollection,
         builder: (context, AsyncSnapshot<UIImageCollection> snapshot) {
-          final initPage = snapshot.data.uiImages.indexOf(_currImage);
-          currPage = initPage;
-          pageController = PageController(
-            initialPage: initPage,
-          );
-          _collection = snapshot.data;
-          Future.forEach(_collection.thumbnails, (Future<Thumbnail> thumbnail) {
-            thumbnail.then((val) {
-              images.add(val.image);
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            final initPage = snapshot.data.uiImages.indexOf(_currImage);
+            currPage = initPage;
+            pageController = PageController(
+              initialPage: initPage,
+            );
+            lowerPageController = PageController(
+              viewportFraction: 0.25,
+              initialPage: initPage,
+            );
+            _collection = snapshot.data;
+            Future.forEach(_collection.thumbnails,
+                (Future<Thumbnail> thumbnail) {
+              thumbnail.then((val) {
+                images.add(val.image);
+              });
             });
-          });
+          }
+
           return Column(
             children: <Widget>[
               Expanded(
@@ -79,48 +89,64 @@ class _DetailPageState extends State<DetailPage> {
               ),
               Container(
                 height: 100,
-                child: PageView.builder(
-                    pageSnapping: false,
-                    scrollDirection: Axis.horizontal,
-                    onPageChanged: (index) {
-                      pageController.animateToPage(index,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.linear);
-                    },
-                    controller: PageController(
-                      viewportFraction: 0.25,
-                      initialPage: initPage,
-                    ),
-                    itemCount: snapshot.data.uiImages.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        width: 100,
-                        child: Image.memory(images[index],
-                            fit: BoxFit.cover, gaplessPlayback: true),
-                      );
-                    }),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onHorizontalDragDown: (drag) {
+                    tapingUpperContainer = false;
+                  },
+                  child: PageView.builder(
+                      pageSnapping: false,
+                      scrollDirection: Axis.horizontal,
+                      onPageChanged: (index) {
+                        pageController.animateToPage(index,
+                            duration: Duration(milliseconds: 1),
+                            curve: Curves.linear);
+                      },
+                      controller: lowerPageController,
+                      itemCount: snapshot.data.uiImages.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Container(
+                          width: 100,
+                          child: Image.memory(images[index],
+                              fit: BoxFit.cover, gaplessPlayback: true),
+                        );
+                      }),
+                ),
               )
             ],
           );
         });
   }
 
-  PageView buildPageView(BuildContext context, UIImageCollection collection) {
-    return PageView.builder(
-        onPageChanged: (pageIndex) {},
-        controller: pageController,
-        itemCount: collection.uiImages.length,
-        itemBuilder: (context, index) {
-          return Hero(
-            tag: currPage == index ? _collection.uiImages[index].path : "null",
-            child: Container(
-              width: 150,
-              height: 150,
-              child: _buildImageFuture(
-                  File(collection.uiImages[index].path), index),
-            ),
-          );
-        });
+  Widget buildPageView(BuildContext context, UIImageCollection collection) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragDown: (drag) {
+        tapingUpperContainer = true;
+      },
+      child: PageView.builder(
+          onPageChanged: (pageIndex) {
+            currPage = pageIndex;
+            if (tapingUpperContainer) {
+              lowerPageController.animateToPage(pageIndex,
+                  duration: Duration(milliseconds: 300), curve: Curves.linear);
+            }
+          },
+          controller: pageController,
+          itemCount: collection.uiImages.length,
+          itemBuilder: (context, index) {
+            return Hero(
+              tag:
+                  currPage == index ? _collection.uiImages[index].path : "null",
+              child: Container(
+                width: 150,
+                height: 150,
+                child: _buildImageFuture(
+                    File(collection.uiImages[index].path), index),
+              ),
+            );
+          }),
+    );
   }
 
   Widget _buildImageFuture(File file, int index) {
