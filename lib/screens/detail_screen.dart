@@ -30,8 +30,6 @@ class _DetailPageState extends State<DetailPage> {
   int currPage = -1;
   Uint8List image;
   UIImageCollection initCollection;
-  Uint8List previousPageCache;
-  Uint8List nextPageCache;
   List<Uint8List> images = [];
 
   PageController pageController;
@@ -74,19 +72,45 @@ class _DetailPageState extends State<DetailPage> {
               images.add(val.image);
             });
           });
-          return buildPageView(context, snapshot.data);
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: buildPageView(context, snapshot.data),
+              ),
+              Container(
+                height: 100,
+                child: PageView.builder(
+                    pageSnapping: false,
+                    scrollDirection: Axis.horizontal,
+                    onPageChanged: (index) {
+                      pageController.animateToPage(index,
+                          duration: Duration(milliseconds: 300),
+                          curve: Curves.linear);
+                    },
+                    controller: PageController(
+                      viewportFraction: 0.25,
+                      initialPage: initPage,
+                    ),
+                    itemCount: snapshot.data.uiImages.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        width: 100,
+                        child: Image.memory(images[index],
+                            fit: BoxFit.cover, gaplessPlayback: true),
+                      );
+                    }),
+              )
+            ],
+          );
         });
   }
 
   PageView buildPageView(BuildContext context, UIImageCollection collection) {
     return PageView.builder(
-        onPageChanged: (pageIndex) {
-          _precache(pageIndex, context);
-        },
+        onPageChanged: (pageIndex) {},
         controller: pageController,
         itemCount: collection.uiImages.length,
         itemBuilder: (context, index) {
-          _initialPrecache(index, context);
           return Hero(
             tag: currPage == index ? _collection.uiImages[index].path : "null",
             child: Container(
@@ -114,46 +138,5 @@ class _DetailPageState extends State<DetailPage> {
         );
       },
     );
-  }
-
-  void _initialPrecache(int currIndex, BuildContext context) {
-    if (previousPage == -1) {
-      _precachePreviousPage(currIndex, context);
-      _precacheNextPage(currIndex, context);
-      previousPage = currIndex;
-    }
-  }
-
-  void _precache(int currIndex, BuildContext context) {
-    if (currIndex > previousPage) {
-      _precacheNextPage(currIndex, context);
-    } else if (currIndex < previousPage) {
-      _precachePreviousPage(currIndex, context);
-    }
-    previousPage = currIndex;
-  }
-
-  void _precacheNextPage(int currIndex, BuildContext context) {
-    if (currIndex < _collection.uiImages.length - 1) {
-      _collection.thumbnails[currIndex + 1].then((thumbNail) {
-        nextPageCache = thumbNail.image;
-      });
-      if (currIndex + 1 < _collection.uiImages.length - 1) {
-        _collection.thumbnails[currIndex + 2].then((thumbNail) {
-          nextPageCache = thumbNail.image;
-        });
-      }
-    }
-  }
-
-  void _precachePreviousPage(int currIndex, BuildContext context) {
-    if (currIndex > 0) {
-      precacheImage(
-          FileImage(File(_collection.uiImages[currIndex - 1].path)), context);
-      if (currIndex - 1 > 0) {
-        precacheImage(
-            FileImage(File(_collection.uiImages[currIndex - 2].path)), context);
-      }
-    }
   }
 }
