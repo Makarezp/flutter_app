@@ -60,7 +60,7 @@ class UIImageCollection {
         this.thumbnails = collection.images.map((img) {
           if (!cache.containsKey(img.path)) {
             cache[img.path] = FlutterImageCompress.compressWithFile(img.path,
-                    minWidth: 600, minHeight: 600, quality: 5)
+                    minWidth: 600, minHeight: 600, quality: 40)
                 .then(
                     (value) => Thumbnail(img.path, Uint8List.fromList(value)));
           }
