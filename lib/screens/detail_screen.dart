@@ -37,10 +37,7 @@ class _DetailPageState extends State<DetailPage> {
   PageController pageController;
 
   _DetailPageState(
-      this._collectionId, this._currImage, this.image, this.initCollection) {
-    this.previousPageCache = image;
-    this.nextPageCache = image;
-  }
+      this._collectionId, this._currImage, this.image, this.initCollection);
 
   @override
   void didChangeDependencies() {
@@ -74,7 +71,6 @@ class _DetailPageState extends State<DetailPage> {
           _collection = snapshot.data;
           Future.forEach(_collection.thumbnails, (Future<Thumbnail> thumbnail) {
             thumbnail.then((val) {
-              precacheImage(MemoryImage(val.image), context);
               images.add(val.image);
             });
           });
@@ -85,15 +81,14 @@ class _DetailPageState extends State<DetailPage> {
   PageView buildPageView(BuildContext context, UIImageCollection collection) {
     return PageView.builder(
         onPageChanged: (pageIndex) {
-//          currPage = pageIndex;
-//          _precache(pageIndex, context);
+          _precache(pageIndex, context);
         },
         controller: pageController,
         itemCount: collection.uiImages.length,
         itemBuilder: (context, index) {
           _initialPrecache(index, context);
           return Hero(
-            tag: _collection.uiImages[index].path,
+            tag: currPage == index ? _collection.uiImages[index].path : "null",
             child: Container(
               width: 150,
               height: 150,
@@ -105,18 +100,15 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   Widget _buildImageFuture(File file, int index) {
-    final val = index > previousPage ? nextPageCache : previousPageCache;
     return FutureBuilder(
-      key: Key("futurebuilder"),
       future: precacheImage(FileImage(file), context).then((val) => true),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Image.memory(images[index],
-              key: Key("image"), fit: BoxFit.cover, gaplessPlayback: true);
+              fit: BoxFit.cover, gaplessPlayback: true);
         }
         return Image.file(
           file,
-          key: Key("image"),
           fit: BoxFit.cover,
           gaplessPlayback: true,
         );
@@ -143,15 +135,10 @@ class _DetailPageState extends State<DetailPage> {
 
   void _precacheNextPage(int currIndex, BuildContext context) {
     if (currIndex < _collection.uiImages.length - 1) {
-//      precacheImage(
-//          FileImage(File(_collection.uiImages[currIndex + 1].path)), context);
-
       _collection.thumbnails[currIndex + 1].then((thumbNail) {
         nextPageCache = thumbNail.image;
       });
       if (currIndex + 1 < _collection.uiImages.length - 1) {
-//        precacheImage(
-//            FileImage(File(_collection.uiImages[currIndex + 2].path)), context);
         _collection.thumbnails[currIndex + 2].then((thumbNail) {
           nextPageCache = thumbNail.image;
         });
@@ -163,18 +150,10 @@ class _DetailPageState extends State<DetailPage> {
     if (currIndex > 0) {
       precacheImage(
           FileImage(File(_collection.uiImages[currIndex - 1].path)), context);
-
-      _collection.thumbnails[currIndex - 1].then((thumbNail) {
-        previousPageCache = thumbNail.image;
-      });
       if (currIndex - 1 > 0) {
         precacheImage(
             FileImage(File(_collection.uiImages[currIndex - 2].path)), context);
       }
-
-      _collection.thumbnails[currIndex - 1].then((thumbNail) {
-        previousPageCache = thumbNail.image;
-      });
     }
   }
 }
