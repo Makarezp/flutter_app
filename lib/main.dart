@@ -1,9 +1,13 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:timeline_app/block/image_block_provider.dart';
 import 'package:timeline_app/injector/module.dart';
 import 'package:timeline_app/screens/home_screen.dart';
+import 'package:flutter/foundation.dart';
 
 void main() {
+  debugPrintHitTestResults = true;
+  debugPrintGestureArenaDiagnostics = true;
   CustomWidgetFlutterBinding();
   runApp(App());
 }

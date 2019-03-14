@@ -116,7 +116,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         return DetailPage(
                             collection.id,
                             collection.uiImages[imageIndex],
-                            snapshot.data.image,
                             collection);
                       })),
                   onLongPress: () => block.deleteImage(snapshot.data.path),
